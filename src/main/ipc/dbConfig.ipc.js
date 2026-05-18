@@ -1,8 +1,9 @@
 import { app, ipcMain } from 'electron';
 import Store from 'electron-store';
 import { existsSync, unlinkSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { Client } from 'pg';
+import { fileURLToPath } from 'url';
 
 const ENC_KEY = 'nexterp-db-secure-key-2024';
 const XOR_KEY = 'nxrp-db-xor-salt';
@@ -105,6 +106,38 @@ export function registerDbConfigIpc() {
       dbStore.clear();
       removeEnvFile();
       return { success: true, data: { message: 'Configuration deleted' } };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('db:migrate', async () => {
+    try {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      const migrationsDir = join(__dirname, '..', 'db', 'migrations');
+
+      let migrate;
+      try {
+        ({ migrate } = await import('../db/migrate.js'));
+      } catch {
+        return {
+          success: false,
+          error: 'Migration module not found. Ensure src/main/db/migrate.js exists.',
+        };
+      }
+
+      const result = await migrate(migrationsDir);
+      return {
+        success: true,
+        data: {
+          message:
+            result.applied.length > 0
+              ? `Applied ${result.applied.length} migration(s): ${result.applied.join(', ')}`
+              : 'No pending migrations.',
+          applied: result.applied,
+        },
+      };
     } catch (error) {
       return { success: false, error: error.message };
     }

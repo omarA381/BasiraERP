@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveDbConfig: (config) => ipcRenderer.invoke('db:save-config', config),
   loadDbConfig: () => ipcRenderer.invoke('db:load-config'),
   deleteDbConfig: () => ipcRenderer.invoke('db:delete-config'),
+  migrate: () => ipcRenderer.invoke('db:migrate'),
   login: (credentials) => ipcRenderer.invoke('auth:login', credentials),
   logout: () => ipcRenderer.invoke('auth:logout'),
   getCompanies: () => ipcRenderer.invoke('auth:get-companies'),
