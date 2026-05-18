@@ -22,3 +22,10 @@ contextBridge.exposeInMainWorld('nexterp', {
     chrome: process.versions.chrome
   }
 });
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  testConnection: (config) => ipcRenderer.invoke('db:test-connection', config),
+  saveDbConfig: (config) => ipcRenderer.invoke('db:save-config', config),
+  loadDbConfig: () => ipcRenderer.invoke('db:load-config'),
+  deleteDbConfig: () => ipcRenderer.invoke('db:delete-config'),
+});

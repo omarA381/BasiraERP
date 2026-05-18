@@ -1,8 +1,6 @@
-import { join } from 'path';
-import dotenv from 'dotenv';
 import { app, BrowserWindow } from 'electron';
-
-dotenv.config();
+import { join } from 'path';
+import { registerIpcHandlers } from './ipc/index.js';
 
 let mainWindow = null;
 
@@ -30,6 +28,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  registerIpcHandlers();
   createWindow();
 
   app.on('activate', () => {
