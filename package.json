@@ -1,0 +1,38 @@
+{
+  "name": "nexterp",
+  "version": "1.0.0",
+  "description": "NEXTERP — Enterprise Resource Planning System",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "lint": "eslint . --ext .js,.jsx --fix"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "electron-store": "^8.2.0",
+    "lucide-react": "^0.400.0",
+    "pg": "^8.12.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.52.0",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.24.0",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "electron": "^31.1.0",
+    "electron-vite": "^2.3.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4"
+  }
+}
