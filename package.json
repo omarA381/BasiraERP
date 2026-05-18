@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.5",
     "electron-store": "^8.2.0",
     "lucide-react": "^0.400.0",
