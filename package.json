@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .js,.jsx --fix"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "dotenv": "^16.4.5",
     "electron-store": "^8.2.0",
     "lucide-react": "^0.400.0",

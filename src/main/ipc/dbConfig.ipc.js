@@ -72,7 +72,7 @@ export function registerDbConfigIpc() {
       dbStore.set('password', encryptedPassword);
       dbStore.set('ssl', Boolean(ssl));
       writeEnvFile({ host, port, database, user, password });
-      return { success: true, data: { message: 'Configuration saved' } };
+      return { success: true, data: { message: 'Configuration saved', envPath: getEnvPath() } };
     } catch (error) {
       return { success: false, error: error.message };
     }
