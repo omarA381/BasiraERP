@@ -2,7 +2,6 @@ import '../styles/global.css';
 
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-
 import Dashboard from './screens/Dashboard';
 
 export default function App() {
