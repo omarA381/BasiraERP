@@ -8,6 +8,8 @@ import Dashboard from './screens/Dashboard';
 import Login from './screens/Login';
 import FoundationDashboard from './screens/foundation/FoundationDashboard';
 import UsersRoles from './screens/foundation/UsersRoles';
+import AuditLogViewer from './screens/foundation/AuditLogViewer';
+import WorkflowDesigner from './screens/foundation/WorkflowDesigner';
 import AppShell from './components/AppShell';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -69,6 +71,8 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/foundation" element={<FoundationDashboard />} />
           <Route path="/foundation/users-roles" element={<UsersRoles />} />
+          <Route path="/foundation/audit-log" element={<AuditLogViewer />} />
+          <Route path="/foundation/workflows" element={<WorkflowDesigner />} />
           <Route
             path="/foundation/*"
             element={

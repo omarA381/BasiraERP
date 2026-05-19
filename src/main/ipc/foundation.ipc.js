@@ -420,6 +420,378 @@ ipcMain.handle('permission:list-all', async () => {
   }
 });
 
+// ============================================================
+// audit:query
+// ============================================================
+ipcMain.handle('audit:query', async (_event, { companyId, filters, page, limit }) => {
+  try {
+    const conditions = ['a.company_id = $1'];
+    const params = [companyId];
+    let paramIdx = 2;
+
+    if (filters?.dateFrom) {
+      conditions.push(`a.created_at >= $${paramIdx}`);
+      params.push(filters.dateFrom);
+      paramIdx++;
+    }
+    if (filters?.dateTo) {
+      conditions.push(`a.created_at <= $${paramIdx}`);
+      params.push(filters.dateTo + 'T23:59:59');
+      paramIdx++;
+    }
+    if (filters?.userId) {
+      conditions.push(`a.user_id = $${paramIdx}`);
+      params.push(filters.userId);
+      paramIdx++;
+    }
+    if (filters?.action) {
+      conditions.push(`a.action = $${paramIdx}`);
+      params.push(filters.action);
+      paramIdx++;
+    }
+    if (filters?.tableName) {
+      conditions.push(`a.table_name = $${paramIdx}`);
+      params.push(filters.tableName);
+      paramIdx++;
+    }
+    if (filters?.ipAddress) {
+      conditions.push(`a.ip_address ILIKE $${paramIdx}`);
+      params.push(`%${filters.ipAddress}%`);
+      paramIdx++;
+    }
+
+    const whereClause = conditions.join(' AND ');
+    const offset = ((page || 1) - 1) * (limit || 50);
+
+    const [entriesResult, countResult] = await Promise.all([
+      query(
+        `SELECT a.id, a.action, a.table_name, a.record_id, a.old_values,
+                a.new_values, a.ip_address, a.user_agent, a.created_at,
+                COALESCE(u.full_name, u.username, 'System') AS user_name
+         FROM audit_log a
+         LEFT JOIN users u ON a.user_id = u.id
+         WHERE ${whereClause}
+         ORDER BY a.created_at DESC
+         LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+        [...params, limit || 50, offset]
+      ),
+      query(
+        `SELECT COUNT(*)::int AS total FROM audit_log a WHERE ${whereClause}`,
+        params
+      ),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        entries: entriesResult.rows,
+        total: countResult.rows[0]?.total || 0,
+        page: page || 1,
+        limit: limit || 50,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// audit:get-tables
+// ============================================================
+ipcMain.handle('audit:get-tables', async (_event, { companyId }) => {
+  try {
+    const result = await query(
+      `SELECT DISTINCT table_name
+       FROM audit_log
+       WHERE company_id = $1 AND table_name IS NOT NULL
+       ORDER BY table_name`,
+      [companyId]
+    );
+    return { success: true, data: result.rows.map((r) => r.table_name) };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// audit:get-stats
+// ============================================================
+ipcMain.handle('audit:get-stats', async (_event, { companyId }) => {
+  try {
+    const [actionsPerDay, topUsers] = await Promise.all([
+      query(
+        `SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS date,
+                COUNT(*)::int AS count
+         FROM audit_log
+         WHERE company_id = $1
+           AND created_at >= NOW() - INTERVAL '30 days'
+         GROUP BY date
+         ORDER BY date`,
+        [companyId]
+      ),
+      query(
+        `SELECT COALESCE(u.full_name, u.username, 'System') AS user_name,
+                COUNT(*)::int AS count
+         FROM audit_log a
+         LEFT JOIN users u ON a.user_id = u.id
+         WHERE a.company_id = $1
+         GROUP BY u.full_name, u.username
+         ORDER BY count DESC
+         LIMIT 5`,
+        [companyId]
+      ),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        actionsPerDay: actionsPerDay.rows,
+        topUsers: topUsers.rows,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// audit:export-csv
+// ============================================================
+ipcMain.handle('audit:export-csv', async (_event, { companyId, filters }) => {
+  try {
+    // Build same query as audit:query but without pagination
+    const conditions = ['a.company_id = $1'];
+    const params = [companyId];
+    let paramIdx = 2;
+
+    if (filters?.dateFrom) {
+      conditions.push(`a.created_at >= $${paramIdx}`);
+      params.push(filters.dateFrom);
+      paramIdx++;
+    }
+    if (filters?.dateTo) {
+      conditions.push(`a.created_at <= $${paramIdx}`);
+      params.push(filters.dateTo + 'T23:59:59');
+      paramIdx++;
+    }
+    if (filters?.userId) {
+      conditions.push(`a.user_id = $${paramIdx}`);
+      params.push(filters.userId);
+      paramIdx++;
+    }
+    if (filters?.action) {
+      conditions.push(`a.action = $${paramIdx}`);
+      params.push(filters.action);
+      paramIdx++;
+    }
+    if (filters?.tableName) {
+      conditions.push(`a.table_name = $${paramIdx}`);
+      params.push(filters.tableName);
+      paramIdx++;
+    }
+    if (filters?.ipAddress) {
+      conditions.push(`a.ip_address ILIKE $${paramIdx}`);
+      params.push(`%${filters.ipAddress}%`);
+      paramIdx++;
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    const { dialog } = await import('electron');
+
+    const { filePath } = await dialog.showSaveDialog({
+      title: 'Export Audit Log',
+      defaultPath: `audit-log-${new Date().toISOString().slice(0, 10)}.csv`,
+      filters: [{ name: 'CSV Files', extensions: ['csv'] }],
+    });
+
+    if (!filePath) {
+      return { success: false, error: 'Export cancelled' };
+    }
+
+    const { rows } = await query(
+      `SELECT a.created_at, COALESCE(u.full_name, u.username, 'System') AS user_name,
+              a.action, a.table_name, a.record_id, a.ip_address,
+              a.old_values::text AS old_values, a.new_values::text AS new_values,
+              a.user_agent
+       FROM audit_log a
+       LEFT JOIN users u ON a.user_id = u.id
+       WHERE ${whereClause}
+       ORDER BY a.created_at DESC`,
+      params
+    );
+
+    // Build CSV
+    const { writeFileSync } = await import('fs');
+    const headers = 'Timestamp,User,Action,Table,Record ID,IP Address,Old Values,New Values,User Agent\n';
+    const csvRows = rows.map((r) => {
+      const escape = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+      return [
+        escape(r.created_at),
+        escape(r.user_name),
+        escape(r.action),
+        escape(r.table_name),
+        escape(r.record_id),
+        escape(r.ip_address),
+        escape(r.old_values),
+        escape(r.new_values),
+        escape(r.user_agent),
+      ].join(',');
+    });
+
+    writeFileSync(filePath, headers + csvRows.join('\n'), 'utf-8');
+
+    return { success: true, data: { message: `Exported ${rows.length} entries to ${filePath}` } };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// workflow:list
+// ============================================================
+ipcMain.handle('workflow:list', async (_event, { companyId }) => {
+  try {
+    const result = await query(
+      `SELECT ws.id, ws.name, ws.module, ws.trigger, ws.is_active,
+              ws.conditions, ws.steps, ws.created_at, ws.updated_at
+       FROM workflow_steps ws
+       WHERE ws.company_id = $1
+       ORDER BY ws.module, ws.name`,
+      [companyId]
+    );
+
+    // Parse JSONB fields
+    const workflows = result.rows.map((r) => ({
+      ...r,
+      conditions: r.conditions || [],
+      steps: r.steps || [],
+    }));
+
+    return { success: true, data: workflows };
+  } catch (error) {
+    // If table doesn't exist, return empty
+    if (error.code === '42P01') {
+      return { success: true, data: [] };
+    }
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// workflow:save
+// ============================================================
+ipcMain.handle('workflow:save', async (_event, workflow) => {
+  const { id, companyId, name, description, module, trigger, is_active, conditions, steps } = workflow;
+
+  try {
+    let result;
+
+    if (id) {
+      // Update existing
+      result = await query(
+        `UPDATE workflow_steps
+         SET name = $1, description = $2, module = $3, trigger = $4,
+             is_active = $5, conditions = $6::jsonb, steps = $7::jsonb,
+             updated_at = NOW()
+         WHERE id = $8 AND company_id = $9
+         RETURNING id, name, module, trigger, is_active`,
+        [name, description || null, module, trigger || null, is_active,
+         JSON.stringify(conditions), JSON.stringify(steps), id, companyId]
+      );
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'Workflow not found' };
+      }
+    } else {
+      // Insert new
+      result = await query(
+        `INSERT INTO workflow_steps (company_id, name, description, module, trigger, is_active, conditions, steps)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb)
+         RETURNING id, name, module, trigger, is_active`,
+        [companyId, name, description || null, module, trigger || null, is_active,
+         JSON.stringify(conditions), JSON.stringify(steps)]
+      );
+    }
+
+    // Audit
+    try {
+      await query(
+        `INSERT INTO audit_log (company_id, action, table_name, record_id, new_values, created_at)
+         VALUES ($1, $2, 'workflow_steps', $3, $4, NOW())`,
+        [companyId, id ? 'UPDATE' : 'CREATE', result.rows[0].id, JSON.stringify({ name, module })]
+      );
+    } catch {
+      // non-fatal
+    }
+
+    return { success: true, data: result.rows[0] };
+  } catch (error) {
+    // If table doesn't exist, return error
+    if (error.code === '42P01') {
+      return { success: false, error: 'Workflow table not found. Run database migration.' };
+    }
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// workflow:delete
+// ============================================================
+ipcMain.handle('workflow:delete', async (_event, { workflowId }) => {
+  try {
+    const result = await query(
+      'DELETE FROM workflow_steps WHERE id = $1 RETURNING id, name',
+      [workflowId]
+    );
+
+    if (result.rows.length === 0) {
+      return { success: false, error: 'Workflow not found' };
+    }
+
+    return { success: true, data: result.rows[0] };
+  } catch (error) {
+    if (error.code === '42P01') {
+      return { success: true, data: null };
+    }
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================
+// workflow:get-approvers
+// ============================================================
+ipcMain.handle('workflow:get-approvers', async (_event, { companyId }) => {
+  try {
+    const [users, roles] = await Promise.all([
+      query(
+        `SELECT id, username, full_name, email
+         FROM users
+         WHERE company_id = $1 AND is_active = TRUE
+         ORDER BY full_name`,
+        [companyId]
+      ),
+      query(
+        `SELECT id, role_name
+         FROM roles
+         WHERE company_id = $1
+         ORDER BY role_name`,
+        [companyId]
+      ),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        users: users.rows,
+        roles: roles.rows,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 export function registerFoundationIpc() {
   // All handlers registered at module level via ipcMain.handle()
   // This function exists for consistency with register pattern

@@ -30,6 +30,7 @@ const NAV_ITEMS = [
       { label: 'Roles', path: '/foundation/roles', icon: Shield },
       { label: 'Permissions', path: '/foundation/permissions', icon: Key },
       { label: 'Audit Log', path: '/foundation/audit-log', icon: ClipboardList },
+      { label: 'Workflows', path: '/foundation/workflows', icon: GitBranch },
       { label: 'Settings', path: '/foundation/settings', icon: Settings },
     ],
   },

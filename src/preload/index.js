@@ -48,4 +48,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createRole: (payload) => ipcRenderer.invoke('role:create', payload),
   getRolesWithUserCount: (payload) => ipcRenderer.invoke('role:get-with-user-count', payload),
   listAllPermissions: () => ipcRenderer.invoke('permission:list-all'),
+  // Audit
+  auditQuery: (payload) => ipcRenderer.invoke('audit:query', payload),
+  auditGetTables: (payload) => ipcRenderer.invoke('audit:get-tables', payload),
+  auditGetStats: (payload) => ipcRenderer.invoke('audit:get-stats', payload),
+  auditExportCsv: (payload) => ipcRenderer.invoke('audit:export-csv', payload),
+  // Workflow
+  workflowList: (payload) => ipcRenderer.invoke('workflow:list', payload),
+  workflowSave: (payload) => ipcRenderer.invoke('workflow:save', payload),
+  workflowDelete: (payload) => ipcRenderer.invoke('workflow:delete', payload),
+  workflowGetApprovers: (payload) => ipcRenderer.invoke('workflow:get-approvers', payload),
 });
