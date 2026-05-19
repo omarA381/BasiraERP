@@ -32,4 +32,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   login: (credentials) => ipcRenderer.invoke('auth:login', credentials),
   logout: () => ipcRenderer.invoke('auth:logout'),
   getCompanies: () => ipcRenderer.invoke('auth:get-companies'),
+  createCompany: (payload) => ipcRenderer.invoke('company:create', payload),
+  selectLogo: () => ipcRenderer.invoke('company:select-logo'),
 });

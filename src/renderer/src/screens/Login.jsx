@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import NewCompanyDialog from '../components/dialogs/NewCompanyDialog';
 import { User, Lock, Eye, EyeOff, Building2, ChevronDown, Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -27,6 +28,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { setUser, setCompany } = useAuthStore();
 
@@ -40,6 +42,15 @@ export default function Login() {
   });
 
   useEffect(() => {
+    window.electronAPI
+      .getCompanies()
+      .then((res) => {
+        if (res.success) setCompanies(res.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const refreshCompanies = useCallback(() => {
     window.electronAPI
       .getCompanies()
       .then((res) => {
@@ -337,6 +348,17 @@ export default function Login() {
               </p>
             )}
 
+            {/* Register New Company */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setDialogOpen(true)}
+                className="text-sm text-teal-600 underline-offset-2 hover:text-teal-700 hover:underline"
+              >
+                Register New Company
+              </button>
+            </div>
+
             {/* Database Settings Link */}
             <div className="text-center">
               <button
@@ -350,6 +372,15 @@ export default function Login() {
           </form>
         </div>
       </div>
+
+      <NewCompanyDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSuccess={() => {
+          setDialogOpen(false);
+          refreshCompanies();
+        }}
+      />
     </div>
   );
 }
