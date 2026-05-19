@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { dialog, ipcMain } from 'electron';
-import pool, { query } from '../db/index.js';
+import { getClient, query } from '../db/pool.js';
 
 export function registerCompanyIpc() {
   ipcMain.handle('company:select-logo', async () => {
@@ -22,7 +22,7 @@ export function registerCompanyIpc() {
   });
 
   ipcMain.handle('company:create', async (_event, { company, adminUser }) => {
-    const client = await pool.connect();
+    const client = await getClient();
     try {
       await client.query('BEGIN');
 

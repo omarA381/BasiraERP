@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import NewCompanyDialog from '../components/dialogs/NewCompanyDialog';
 import NewUserDialog from '../components/dialogs/NewUserDialog';
@@ -32,7 +32,7 @@ export default function Login() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const navigate = useNavigate();
-  const { setUser, setCompany } = useAuthStore();
+  const { setUser, setCompany, isAuthenticated } = useAuthStore();
 
   const {
     register,
@@ -55,14 +55,19 @@ export default function Login() {
 
   const selectedCompanyId = watch('companyId');
 
-  const refreshCompanies = useCallback(() => {
+  // If already authenticated, redirect to dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const refreshCompanies = () => {
     window.electronAPI
       .getCompanies()
       .then((res) => {
         if (res.success) setCompanies(res.data);
       })
       .catch(() => {});
-  }, []);
+  };
 
   const onSubmit = async (data) => {
     setIsLoading(true);

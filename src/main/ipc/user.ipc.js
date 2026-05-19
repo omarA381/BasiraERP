@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { ipcMain } from 'electron';
-import { query } from '../db/index.js';
+import { query } from '../db/pool.js';
 
 export function registerUserIpc() {
   // ============================================================
