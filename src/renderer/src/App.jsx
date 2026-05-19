@@ -6,6 +6,8 @@ import useAuthStore from './store/authStore';
 import DatabaseSetup from './screens/DatabaseSetup';
 import Dashboard from './screens/Dashboard';
 import Login from './screens/Login';
+import FoundationDashboard from './screens/foundation/FoundationDashboard';
+import UsersRoles from './screens/foundation/UsersRoles';
 import AppShell from './components/AppShell';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -65,14 +67,8 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route
-            path="/foundation"
-            element={
-              <div className="flex h-full items-center justify-center text-gray-400">
-                Select a Foundation module from the sidebar
-              </div>
-            }
-          />
+          <Route path="/foundation" element={<FoundationDashboard />} />
+          <Route path="/foundation/users-roles" element={<UsersRoles />} />
           <Route
             path="/foundation/*"
             element={

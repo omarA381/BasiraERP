@@ -39,4 +39,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   listRoles: (payload) => ipcRenderer.invoke('role:list', payload),
   getRolePermissions: (payload) => ipcRenderer.invoke('role:get-permissions', payload),
   listBranches: (payload) => ipcRenderer.invoke('branch:list', payload),
+  getFoundationStats: (payload) => ipcRenderer.invoke('foundation:get-stats', payload),
+  listUsers: (payload) => ipcRenderer.invoke('user:list', payload),
+  updateUser: (payload) => ipcRenderer.invoke('user:update', payload),
+  toggleUserActive: (payload) => ipcRenderer.invoke('user:toggle-active', payload),
+  resetUserPassword: (payload) => ipcRenderer.invoke('user:reset-password', payload),
+  updateRolePermissions: (payload) => ipcRenderer.invoke('role:update-permissions', payload),
+  createRole: (payload) => ipcRenderer.invoke('role:create', payload),
+  getRolesWithUserCount: (payload) => ipcRenderer.invoke('role:get-with-user-count', payload),
+  listAllPermissions: () => ipcRenderer.invoke('permission:list-all'),
 });
