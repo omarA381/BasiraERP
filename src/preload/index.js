@@ -34,4 +34,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCompanies: () => ipcRenderer.invoke('auth:get-companies'),
   createCompany: (payload) => ipcRenderer.invoke('company:create', payload),
   selectLogo: () => ipcRenderer.invoke('company:select-logo'),
+  createUser: (payload) => ipcRenderer.invoke('user:create', payload),
+  checkUsername: (payload) => ipcRenderer.invoke('user:check-username', payload),
+  listRoles: (payload) => ipcRenderer.invoke('role:list', payload),
+  getRolePermissions: (payload) => ipcRenderer.invoke('role:get-permissions', payload),
+  listBranches: (payload) => ipcRenderer.invoke('branch:list', payload),
 });

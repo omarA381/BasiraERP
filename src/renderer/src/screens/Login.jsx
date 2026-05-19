@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import NewCompanyDialog from '../components/dialogs/NewCompanyDialog';
+import NewUserDialog from '../components/dialogs/NewUserDialog';
 import { User, Lock, Eye, EyeOff, Building2, ChevronDown, Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -29,12 +30,14 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { setUser, setCompany } = useAuthStore();
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -49,6 +52,8 @@ export default function Login() {
       })
       .catch(() => {});
   }, []);
+
+  const selectedCompanyId = watch('companyId');
 
   const refreshCompanies = useCallback(() => {
     window.electronAPI
@@ -359,6 +364,18 @@ export default function Login() {
               </button>
             </div>
 
+            {/* Add New User */}
+            <div className="text-center">
+              <button
+                type="button"
+                disabled={!selectedCompanyId}
+                onClick={() => setUserDialogOpen(true)}
+                className="text-sm text-teal-600 underline-offset-2 hover:text-teal-700 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
+              >
+                Add New User
+              </button>
+            </div>
+
             {/* Database Settings Link */}
             <div className="text-center">
               <button
@@ -381,6 +398,15 @@ export default function Login() {
           refreshCompanies();
         }}
       />
+
+      {selectedCompanyId && (
+        <NewUserDialog
+          companyId={selectedCompanyId}
+          onClose={() => setUserDialogOpen(false)}
+          open={userDialogOpen}
+          onSuccess={() => setUserDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }
