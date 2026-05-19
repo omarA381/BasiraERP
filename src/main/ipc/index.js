@@ -5,6 +5,7 @@
 import { registerAuthIpc } from './auth.ipc.js';
 import { registerCompanyIpc } from './company.ipc.js';
 import { registerDbConfigIpc } from './dbConfig.ipc.js';
+import { registerFiscalCurrenciesIpc } from './fiscal_currencies.ipc.js';
 import { registerFoundationIpc } from './foundation.ipc.js';
 import { registerUserIpc } from './user.ipc.js';
 
@@ -14,4 +15,5 @@ export function registerIpcHandlers() {
   registerCompanyIpc();
   registerUserIpc();
   registerFoundationIpc();
+  registerFiscalCurrenciesIpc();
 }

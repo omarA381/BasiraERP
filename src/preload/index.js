@@ -58,4 +58,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   workflowSave: (payload) => ipcRenderer.invoke('workflow:save', payload),
   workflowDelete: (payload) => ipcRenderer.invoke('workflow:delete', payload),
   workflowGetApprovers: (payload) => ipcRenderer.invoke('workflow:get-approvers', payload),
+  // Fiscal Periods
+  fiscalList: (payload) => ipcRenderer.invoke('fiscal:list', payload),
+  fiscalGenerate: (payload) => ipcRenderer.invoke('fiscal:generate', payload),
+  fiscalOpen: (payload) => ipcRenderer.invoke('fiscal:open', payload),
+  fiscalClose: (payload) => ipcRenderer.invoke('fiscal:close', payload),
+  // Currencies & Exchange Rates
+  currencyList: (payload) => ipcRenderer.invoke('currency:list', payload),
+  currencyAdd: (payload) => ipcRenderer.invoke('currency:add', payload),
+  currencyToggleActive: (payload) => ipcRenderer.invoke('currency:toggle-active', payload),
+  currencyRatesList: (payload) => ipcRenderer.invoke('currency:rates-list', payload),
+  currencyAddRate: (payload) => ipcRenderer.invoke('currency:add-rate', payload),
+  currencyFetchLive: (payload) => ipcRenderer.invoke('currency:fetch-live', payload),
+  // Company Profile
+  getCompanyProfile: (payload) => ipcRenderer.invoke('company:get-profile', payload),
+  updateCompanyProfile: (payload) => ipcRenderer.invoke('company:update-profile', payload),
+  uploadCompanyLogo: (payload) => ipcRenderer.invoke('company:upload-logo', payload),
+  // Branches (extended)
+  createBranch: (payload) => ipcRenderer.invoke('branch:create', payload),
+  updateBranch: (payload) => ipcRenderer.invoke('branch:update', payload),
+  toggleBranchActive: (payload) => ipcRenderer.invoke('branch:toggle-active', payload),
 });

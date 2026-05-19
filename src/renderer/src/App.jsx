@@ -10,6 +10,9 @@ import FoundationDashboard from './screens/foundation/FoundationDashboard';
 import UsersRoles from './screens/foundation/UsersRoles';
 import AuditLogViewer from './screens/foundation/AuditLogViewer';
 import WorkflowDesigner from './screens/foundation/WorkflowDesigner';
+import FiscalPeriods from './screens/foundation/FiscalPeriods';
+import Currencies from './screens/foundation/Currencies';
+import CompanyProfile from './screens/foundation/CompanyProfile';
 import AppShell from './components/AppShell';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -73,6 +76,9 @@ export default function App() {
           <Route path="/foundation/users-roles" element={<UsersRoles />} />
           <Route path="/foundation/audit-log" element={<AuditLogViewer />} />
           <Route path="/foundation/workflows" element={<WorkflowDesigner />} />
+          <Route path="/foundation/fiscal-periods" element={<FiscalPeriods />} />
+          <Route path="/foundation/currencies" element={<Currencies />} />
+          <Route path="/foundation/companies" element={<CompanyProfile />} />
           <Route
             path="/foundation/*"
             element={
